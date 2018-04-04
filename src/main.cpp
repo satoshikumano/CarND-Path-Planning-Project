@@ -164,6 +164,29 @@ vector<double> getXY(double s, double d, const vector<double> &maps_s, const vec
   return {x, y};
 }
 
+double distanceInFront(double my_s, double my_d, vector<vector<double>> sensor_fusion) {
+  double dist = 10000.;
+  double mergin = 2.;
+  for (vector<double> veh : sensor_fusion) {
+    double veh_d = veh[6];
+    if (my_d-2. < veh_d && veh_d <= my_d + 2.) { // Same lane.
+      double veh_s = veh[5];
+      double dist_veh = veh_s - my_s;
+      if (dist_veh > 0 && dist_veh < dist) {
+        dist = dist_veh;
+      }
+    }
+  }
+  return dist - mergin;
+}
+
+bool checkTooClose(double distanceInFront) {
+  if (0 < distanceInFront && distanceInFront < 30) {
+    return true;
+  }
+  return false;
+}
+
 int main()
 {
   uWS::Hub h;
@@ -260,10 +283,19 @@ int main()
           double ref_x = car_x;
           double ref_y = car_y;
           double ref_yaw = deg2rad(car_yaw);
-          if (ref_vel < target_vel)
-            ref_vel += .224;
-          if (ref_vel > target_vel)
-            ref_vel -= .224;
+
+          double dist = distanceInFront(car_s, car_d, sensor_fusion);
+          if (dist == 0)
+            dist = 0.1;
+          bool tooClose = checkTooClose(dist);
+          if (tooClose && ref_vel > 0) {
+            ref_vel -= .224 * 20./dist;
+          } else {
+            if (ref_vel < target_vel)
+              ref_vel += .224;
+            if (ref_vel >= target_vel)
+              ref_vel -= .224;
+          }
 
           if (prev_size < 2)
           {
