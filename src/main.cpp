@@ -164,27 +164,41 @@ vector<double> getXY(double s, double d, const vector<double> &maps_s, const vec
   return {x, y};
 }
 
-double distanceInFront(double my_s, double my_d, vector<vector<double>> sensor_fusion) {
+vector<double> distanceInFront(double my_s, double my_d, vector<vector<double>> sensor_fusion) {
   double dist = 10000.;
-  double mergin = 2.;
+  double v = 10000;
   for (vector<double> veh : sensor_fusion) {
     double veh_d = veh[6];
     if (my_d-2. < veh_d && veh_d <= my_d + 2.) { // Same lane.
       double veh_s = veh[5];
+      double veh_vx = veh[3];
+      double veh_vy = veh[4];
+      double veh_v = sqrt(veh_vx * veh_vx + veh_vy * veh_vy);
       double dist_veh = veh_s - my_s;
       if (dist_veh > 0 && dist_veh < dist) {
         dist = dist_veh;
+        v = veh_v;
       }
     }
   }
-  return dist - mergin;
+  return {dist, v};
 }
 
 bool checkTooClose(double distanceInFront) {
-  if (0 < distanceInFront && distanceInFront < 30) {
+  if (0 < distanceInFront && distanceInFront < 60) {
     return true;
   }
   return false;
+}
+
+// FIXME:
+double acceleration(double dist, double v_diff) {
+  if (v_diff == 0) {
+    v_diff = 0.01;
+  }
+  double param = dist / v_diff;
+  double sigm = 1. / (1. + exp(-1. * param));
+  return 0.3 * sigm;
 }
 
 int main()
@@ -284,12 +298,13 @@ int main()
           double ref_y = car_y;
           double ref_yaw = deg2rad(car_yaw);
 
-          double dist = distanceInFront(car_s, car_d, sensor_fusion);
-          if (dist == 0)
-            dist = 0.1;
+          auto front = distanceInFront(car_s, car_d, sensor_fusion);
+          double dist = front[0];
+          double veh_v = front[1];
+          double v_diff = ref_vel - veh_v;
           bool tooClose = checkTooClose(dist);
           if (tooClose && ref_vel > 0) {
-            ref_vel -= .224 * 20./dist;
+            ref_vel -= .224;
           } else {
             if (ref_vel < target_vel)
               ref_vel += .224;
