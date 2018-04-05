@@ -164,12 +164,12 @@ vector<double> getXY(double s, double d, const vector<double> &maps_s, const vec
   return {x, y};
 }
 
-vector<double> distanceInFront(double my_s, double my_d, vector<vector<double>> sensor_fusion) {
+vector<double> distanceInFront(double my_s, int my_lane, vector<vector<double>> sensor_fusion) {
   double dist = 10000.;
   double v = 10000;
   for (vector<double> veh : sensor_fusion) {
     double veh_d = veh[6];
-    if (my_d-2. < veh_d && veh_d <= my_d + 2.) { // Same lane.
+    if (my_lane - 2. < veh_d && veh_d <= my_lane + 2.) { // Same lane.
       double veh_s = veh[5];
       double veh_vx = veh[3];
       double veh_vy = veh[4];
@@ -182,6 +182,50 @@ vector<double> distanceInFront(double my_s, double my_d, vector<vector<double>> 
     }
   }
   return {dist, v};
+}
+
+bool leftOpen(int my_s, int my_lane, vector<vector<double>> sensor_fusion) {
+  if (my_lane == 0) {
+    return false;
+  }
+  double target_s = 2. + my_lane * 4.;
+  double closest_dist_front = 10000;
+  double closest_dist_rear = 10000;
+  for (vector<double> veh : sensor_fusion) {
+    double veh_d = veh[6];
+    if (target_s-2. < veh_d && veh_d <= target_s+2.) { // Car in left lane.
+      double veh_s = veh[5];
+      double dist_veh = veh_s - my_s;
+      if (dist_veh > 0 && dist_veh < closest_dist_front) {
+        closest_dist_front = dist_veh;
+      } else if (dist_veh > closest_dist_rear) {
+        closest_dist_rear = fabs(dist_veh);
+      }
+    }
+  }
+  return (closest_dist_front > 50 && closest_dist_rear > 30);
+}
+
+bool rightOpen(int my_s, int my_lane, vector<vector<double>> sensor_fusion) {
+  if (my_lane == 2) {
+    return false;
+  }
+  double target_s = 2. + my_lane * 4.;
+  double closest_dist_front = 10000;
+  double closest_dist_rear = 10000;
+  for (vector<double> veh : sensor_fusion) {
+    double veh_d = veh[6];
+    if (target_s-2. < veh_d && veh_d <= target_s+2.) { // Car in left lane.
+      double veh_s = veh[5];
+      double dist_veh = veh_s - my_s;
+      if (dist_veh > 0 && dist_veh < closest_dist_front) {
+        closest_dist_front = dist_veh;
+      } else if (dist_veh > closest_dist_rear) {
+        closest_dist_rear = fabs(dist_veh);
+      }
+    }
+  }
+  return (closest_dist_front > 50 && closest_dist_rear > 30);
 }
 
 bool checkTooClose(double distanceInFront) {
@@ -298,10 +342,11 @@ int main()
           double ref_y = car_y;
           double ref_yaw = deg2rad(car_yaw);
 
-          auto front = distanceInFront(car_s, car_d, sensor_fusion);
+          auto front = distanceInFront(end_path_s, lane, sensor_fusion);
           double dist = front[0];
           double veh_v = front[1];
           double v_diff = ref_vel - veh_v;
+
           bool tooClose = checkTooClose(dist);
           if (tooClose && ref_vel > 0) {
             ref_vel -= .224;
@@ -311,6 +356,19 @@ int main()
             if (ref_vel >= target_vel)
               ref_vel -= .224;
           }
+          bool l_open = leftOpen(end_path_s, lane, sensor_fusion);
+          bool r_open = rightOpen(end_path_s, lane, sensor_fusion);
+          if (tooClose && l_open) {
+            lane -= 1;
+          } else if (tooClose && r_open) {
+            lane += 1;
+          }
+          cout << "dist: " << dist << endl;
+          cout << "v_diff: " << v_diff << endl;
+          cout << "tooClose: " << tooClose << endl;
+          cout << "l_open: " << l_open << endl;
+          cout << "r_open: " << r_open << endl;
+          cout << "lane: " << lane << endl;
 
           if (prev_size < 2)
           {
