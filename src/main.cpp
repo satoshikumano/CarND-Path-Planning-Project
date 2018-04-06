@@ -167,9 +167,10 @@ vector<double> getXY(double s, double d, const vector<double> &maps_s, const vec
 vector<double> distanceInFront(double my_s, int my_lane, vector<vector<double>> sensor_fusion) {
   double dist = 10000.;
   double v = 10000;
+  double target_s = 2. + my_lane * 4.;
   for (vector<double> veh : sensor_fusion) {
     double veh_d = veh[6];
-    if (my_lane - 2. < veh_d && veh_d <= my_lane + 2.) { // Same lane.
+    if (target_s - 2. < veh_d && veh_d <= target_s + 2.) { // Same lane.
       double veh_s = veh[5];
       double veh_vx = veh[3];
       double veh_vy = veh[4];
@@ -188,7 +189,7 @@ bool leftOpen(int my_s, int my_lane, vector<vector<double>> sensor_fusion) {
   if (my_lane == 0) {
     return false;
   }
-  double target_s = 2. + my_lane * 4.;
+  double target_s = 2. + (my_lane - 1) * 4.;
   double closest_dist_front = 10000;
   double closest_dist_rear = 10000;
   for (vector<double> veh : sensor_fusion) {
@@ -210,7 +211,7 @@ bool rightOpen(int my_s, int my_lane, vector<vector<double>> sensor_fusion) {
   if (my_lane == 2) {
     return false;
   }
-  double target_s = 2. + my_lane * 4.;
+  double target_s = 2. + (my_lane + 1) * 4.;
   double closest_dist_front = 10000;
   double closest_dist_rear = 10000;
   for (vector<double> veh : sensor_fusion) {
@@ -229,7 +230,7 @@ bool rightOpen(int my_s, int my_lane, vector<vector<double>> sensor_fusion) {
 }
 
 bool checkTooClose(double distanceInFront) {
-  if (0 < distanceInFront && distanceInFront < 60) {
+  if (0 < distanceInFront && distanceInFront < 30) {
     return true;
   }
   return false;
@@ -243,6 +244,19 @@ double acceleration(double dist, double v_diff) {
   double param = dist / v_diff;
   double sigm = 1. / (1. + exp(-1. * param));
   return 0.3 * sigm;
+}
+
+void printSensorFusion(vector<vector<double>> sensor_fusion) {
+  int i = 0;
+  for (auto veh : sensor_fusion) {
+    int j = 0;
+    for (auto val : veh) {
+      cout << i << "veh[" << j << "]: " << val << " ";
+      ++j;
+    }
+    ++i;
+  }
+  cout << endl;
 }
 
 int main()
@@ -327,6 +341,7 @@ int main()
 
           // Sensor Fusion Data, a list of all other cars on the same side of the road.
           auto sensor_fusion = j[1]["sensor_fusion"];
+          printSensorFusion(sensor_fusion);
 
           json msgJson;
 
@@ -363,6 +378,7 @@ int main()
           } else if (tooClose && r_open) {
             lane += 1;
           }
+          cout << "car_s: " << car_s << endl;
           cout << "dist: " << dist << endl;
           cout << "v_diff: " << v_diff << endl;
           cout << "tooClose: " << tooClose << endl;
