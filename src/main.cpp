@@ -341,7 +341,6 @@ int main()
 
           // Sensor Fusion Data, a list of all other cars on the same side of the road.
           auto sensor_fusion = j[1]["sensor_fusion"];
-          printSensorFusion(sensor_fusion);
 
           json msgJson;
 
@@ -357,7 +356,7 @@ int main()
           double ref_y = car_y;
           double ref_yaw = deg2rad(car_yaw);
 
-          auto front = distanceInFront(end_path_s, lane, sensor_fusion);
+          auto front = distanceInFront(car_s, lane, sensor_fusion);
           double dist = front[0];
           double veh_v = front[1];
           double v_diff = ref_vel - veh_v;
@@ -371,20 +370,22 @@ int main()
             if (ref_vel >= target_vel)
               ref_vel -= .224;
           }
-          bool l_open = leftOpen(end_path_s, lane, sensor_fusion);
-          bool r_open = rightOpen(end_path_s, lane, sensor_fusion);
+          bool l_open = leftOpen(car_s, lane, sensor_fusion);
+          bool r_open = rightOpen(car_s, lane, sensor_fusion);
           if (tooClose && l_open) {
             lane -= 1;
           } else if (tooClose && r_open) {
             lane += 1;
           }
           cout << "car_s: " << car_s << endl;
+          cout << "car_d: " << car_d << endl;
           cout << "dist: " << dist << endl;
           cout << "v_diff: " << v_diff << endl;
           cout << "tooClose: " << tooClose << endl;
           cout << "l_open: " << l_open << endl;
           cout << "r_open: " << r_open << endl;
           cout << "lane: " << lane << endl;
+          printSensorFusion(sensor_fusion);
 
           if (prev_size < 2)
           {
@@ -441,7 +442,7 @@ int main()
             next_y_vals.push_back(previous_path_y[i]);
           }
 
-          double target_x = 30.0;
+          double target_x = 90.0;
           double target_y = s(target_x);
           double target_dist = sqrt(target_x * target_x + target_y * target_y);
           double x_add_on = 0;
