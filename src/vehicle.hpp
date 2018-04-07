@@ -26,7 +26,7 @@ class OtherVehicle {
   double d;
 
   // sf: vector<doube> in sensor_fusion verctor.
-  OtherVehicle(vector<double> sf);
+  void Init(vector<double> sf);
 };
 
 class Vehicle {
