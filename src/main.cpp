@@ -301,8 +301,9 @@ int main()
   int lane = 1;
   double ref_vel = 0;
   const double target_vel = 49.5;
+  bool lc = false;
 
-  h.onMessage([&map_waypoints_x, &map_waypoints_y, &map_waypoints_s, &map_waypoints_dx, &map_waypoints_dy, &lane, &ref_vel, target_vel](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
+  h.onMessage([&map_waypoints_x, &map_waypoints_y, &map_waypoints_s, &map_waypoints_dx, &map_waypoints_dy, &lane, &ref_vel, target_vel, &lc](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                                                                                                                                         uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -372,10 +373,19 @@ int main()
           }
           bool l_open = leftOpen(car_s, lane, sensor_fusion);
           bool r_open = rightOpen(car_s, lane, sensor_fusion);
-          if (tooClose && l_open) {
-            lane -= 1;
-          } else if (tooClose && r_open) {
-            lane += 1;
+          if (!lc) {
+            if (tooClose && l_open) {
+              lc = true;
+              lane -= 1;
+            } else if (tooClose && r_open) {
+              lc = true;
+              lane += 1;
+            }
+          } else {
+            double diff = fabs((2. + 4. * lane) - car_d);
+            if (diff < 0.2) {
+              lc = false;
+            }
           }
           cout << "car_s: " << car_s << endl;
           cout << "car_d: " << car_d << endl;
@@ -385,7 +395,8 @@ int main()
           cout << "l_open: " << l_open << endl;
           cout << "r_open: " << r_open << endl;
           cout << "lane: " << lane << endl;
-          printSensorFusion(sensor_fusion);
+          cout << "lc: " << lc << endl;
+          // printSensorFusion(sensor_fusion);
 
           if (prev_size < 2)
           {
@@ -412,17 +423,31 @@ int main()
             ptsy.push_back(ref_y);
           }
 
-          vector<double> next_wp0 = getXY(car_s + 30, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
-          vector<double> next_wp1 = getXY(car_s + 60, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
-          vector<double> next_wp2 = getXY(car_s + 90, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
+          if (!lc) {
+            vector<double> next_wp0 = getXY(car_s + 30, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
+            vector<double> next_wp1 = getXY(car_s + 60, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
+            vector<double> next_wp2 = getXY(car_s + 90, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
+            ptsx.push_back(next_wp0[0]);
+            ptsx.push_back(next_wp1[0]);
+            ptsx.push_back(next_wp2[0]);
 
-          ptsx.push_back(next_wp0[0]);
-          ptsx.push_back(next_wp1[0]);
-          ptsx.push_back(next_wp2[0]);
+            ptsy.push_back(next_wp0[1]);
+            ptsy.push_back(next_wp1[1]);
+            ptsy.push_back(next_wp2[1]);
+          } else {
+            double diff = (2 + 4 * lane) - car_d;
+            vector<double> next_wp0 = getXY(car_s + 30, car_d + diff/3, map_waypoints_s, map_waypoints_x, map_waypoints_y);
+            vector<double> next_wp1 = getXY(car_s + 60, car_d + diff/2, map_waypoints_s, map_waypoints_x, map_waypoints_y);
+            vector<double> next_wp2 = getXY(car_s + 90, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
+            ptsx.push_back(next_wp0[0]);
+            ptsx.push_back(next_wp1[0]);
+            ptsx.push_back(next_wp2[0]);
 
-          ptsy.push_back(next_wp0[1]);
-          ptsy.push_back(next_wp1[1]);
-          ptsy.push_back(next_wp2[1]);
+            ptsy.push_back(next_wp0[1]);
+            ptsy.push_back(next_wp1[1]);
+            ptsy.push_back(next_wp2[1]);
+          }
+
 
           for (int i = 0; i < ptsx.size(); ++i)
           {
