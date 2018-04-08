@@ -39,6 +39,12 @@ class Vehicle {
   double car_yaw;
   double car_speed;
 
+  vector<double> map_waypoints_x;
+  vector<double> map_waypoints_y;
+  vector<double> map_waypoints_s;
+  vector<double> map_waypoints_dx;
+  vector<double> map_waypoints_dy;
+
   int lane;
   double ref_vel;
   static constexpr double target_vel = 49.5;
@@ -51,7 +57,8 @@ class Vehicle {
   VehicleState state;
   bool too_slow;
 
-  vector<vector<double>> next_vals();
+  vector<double> next_vals_x;
+  vector<double> next_vals_y;
 
   // Key: lane no.
   map<int, OtherVehicle> nearest_vehicles_front;
@@ -63,6 +70,9 @@ class Vehicle {
 
   private:
   void UpdateNearestVehicles();
+  void GenerateKLTrajectories();
+  bool LeftOpen();
+  bool RightOpen();
 };
 
 #endif

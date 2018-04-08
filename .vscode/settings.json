@@ -4,7 +4,9 @@
         "iterator": "cpp",
         "vector": "cpp",
         "algorithm": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "__tree": "cpp",
+        "map": "cpp"
     },
     "editor.tabSize": 2,
 }
