@@ -108,7 +108,6 @@ int main() {
           
           vehicle.Update(j, timestamp);
           vehicle.PrintState();
-          vehicle.PrintNearest();
           json msgJson;
 
           vector<double> next_x_vals = vehicle.next_x_vals;
