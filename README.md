@@ -2,7 +2,7 @@
 
 This repository is forked from [Udacity CarND Path Planning Project](https://github.com/udacity/CarND-Path-Planning-Project).
 
-Steps of setup is written in [Original README](./REAMDE-ORG.md)
+Steps of setup is written in [Original README](./README-ORG.md)
 
 ## State
 
