@@ -74,8 +74,8 @@ In the calculation,
 
 - Assume longitutional speed is constant.
 
-- JMT to calculate s coordinate after 1sec, 2sec, 3 sec.
-  - Assume s dot, s dot dot is in both start and end point.
+- JMT to calculate d coordinate after 1sec, 2sec, 3 sec.
+  - Assume d dot, d dot dot is 0 in both start and end point.
 
 ```
 auto coeffs = helper::JMT({car_d, 0, 0}, {target_d, 0, 0}, 3);
