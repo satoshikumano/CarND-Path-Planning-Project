@@ -88,11 +88,11 @@ Given point is following:
 { ref_s, ref_d }
 { ref_s + speed, jmt(1) }
 { ref_s + speed *  2, jmt(2) }
-{ ref_s + speed * 3, jmt(2) }
+{ ref_s + speed * 3, jmt(3) }
 ```
 
 where `speed` is reference speed of the car.
-jmt(t) is `d` position at 5 given by jerk minimization function.
+jmt(t) is `d` position at time t minimizing jerk.
 
 2. Apply same steps 2-5 in `KL Trajectory generation` to obtain smooth trajectory
  on map coordinate.
