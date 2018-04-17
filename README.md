@@ -66,7 +66,7 @@ Calculate y(i) coordinate corresponds to x(i) with 3rd order polynomial obtained
 ### Lane change trajectory generation
 
 1. Calculate frenet coordinate after 1, 2 and 3 second after from the reference point
-`{ ref_s, ref_d }.
+`{ ref_s, ref_d }`.
 
 Reference point is current car position or last point of previously given to simulator if it has not been consumed yet.
 
